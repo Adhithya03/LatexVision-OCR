@@ -1,80 +1,59 @@
-# LaTeXVision OCR 🔮📄
+# PDF OCR Tool
 
-**LatexVision OCR** is a powerful, high-precision OCR tool designed specifically for scientific and technical documents. It leverages state-of-the-art AI models (Google Gemini, OpenAI, OpenRouter) to transcribe PDFs into clean, structured Markdown, with a non-negotiable focus on **perfect LaTeX math formatting**.
+A specialized OCR application designed for scientific and technical documents. It strictly enforces LaTeX formatting for mathematical expressions and uses LLMs (Gemini, OpenAI) for high-precision transcription.
 
-Ideal for digitizing engineering textbooks, research papers, and complex mathematical notes.
+## Key Features
 
-## ✨ Features
+*   **Strict LaTeX Enforcement**: All math is wrapped in `$...$` or `$$...$$`.
+*   **Literal Transcription**: Preserves original formatting, tables, and lists. No summarization or "fixing".
+*   **Provider Agnostic**: Supports Google Gemini, OpenAI, and OpenRouter.
+*   **Concurrent Processing**: Multi-threaded rendering and API requests for speed.
+*   **GUI**: Python Tkinter interface with dark mode and real-time logs.
 
-- **Strict LaTeX Math Enforcement**: Automatically detects mathematical expressions (variables, equations, units) and wraps them in standard LaTeX delimiters (`$...$` and `$$...$$`). No more broken plain-text math!
-- **AI-Powered Accuracy**: Uses large language models (LLMs) to ensure context-aware transcription that beats traditional OCR on complex layouts.
-- **Provider Agnostic**: Switch seamlessly between:
-  - **Google Gemini** (Recommended for speed/cost)
-  - **OpenAI** (GPT-4o/mini)
-  - **OpenRouter** (Access to Claude, Llama, etc.)
-- **Parallel Processing**: Multi-threaded worker pipeline to transcribe pages concurrently, maximizing throughput.
-- **Smart Formatting**:
-  - Preserves tables as GitHub-flavored Markdown.
-  - Intelligently summarizes complex diagrams (anti-hallucination).
-  - Skips internal plot text to keep output clean.
-- **GUI Interface**: User-friendly Dark/Light mode interface built with Tkinter.
+## Requirements
 
-## 🛠️ Requirements
+*   Python 3.8+
+*   `pypdfium2`, `google-genai`, `openai`, `Pillow` (see `requirements.txt`)
 
-- **Python 3.8+**
-- An API Key for your chosen provider:
-  - `GEMINI_API_KEY` (Google)
-  - `OPENAI_API_KEY` (OpenAI)
-  - `OPENROUTER_API_KEY` (OpenRouter)
+## Configuration & Usage
 
-## 📦 Installation
-
-1.  **Clone the repository:**
-    ```bash
-    git clone https://github.com/yourusername/LatexVision-OCR.git
-    cd LatexVision-OCR
-    ```
-
-2.  **Install dependencies:**
+1.  **Install Dependencies**:
     ```bash
     pip install -r requirements.txt
     ```
 
-## 🚀 Usage
+2.  **Set Environment Variables** (API Keys):
+    *   `GEMINI_API_KEY` (Default model: `gemini-2.5-flash-lite`)
+    *   `OPENAI_API_KEY` (Default model: `gpt-4.1-mini`)
+    *   `OPENROUTER_API_KEY` (Default model: `openai/gpt-4.1-mini`)
+    
+    *Note: Default models can be overridden via `GEMINI_MODEL`, `OPENAI_MODEL`, etc.*
 
-1.  **Set your API Key(s)** (Environment variables or system-wide):
-    On Windows (PowerShell):
-    ```powershell
-    $env:GEMINI_API_KEY="your_key_here"
-    ```
-    On Mac/Linux:
-    ```bash
-    export GEMINI_API_KEY="your_key_here"
-    ```
-
-2.  **Run the App:**
+3.  **Run the Application**:
     ```bash
     python "PDF OCR APP.py"
     ```
 
-3.  **In the App:**
-    - **Select PDF**: Choose your source file.
-    - **Pages**: Enter range (e.g., `1-10`, `5,8,12`, or `all`).
-    - **Provider**: Select your AI provider (default: Google Gemini).
-    - **Concurrency**: Adjust parallel threads based on your rate limits.
-    - **Start OCR**: Watch the log as pages are transcribed in real-time!
+## Technical Overview
 
-## 📝 Configuration
+The project consists of three main modules:
 
-The application allows various configurations via the UI:
-- **DPI**: Adjust render quality (default 300).
-- **Dark Mode**: Toggle for visual comfort.
-- **Strict Mode**: The underlying prompt is engineered to reject hallucinations and strictly adhere to "Literal Transcription" rules.
+*   **`PDF OCR APP.py`** (Frontend)
+    *   **Entry Point**: Launches the Tkinter GUI.
+    *   **Settings**: Manages inputs for file paths, page ranges, DPI, and concurrency.
+    *   **Prompting**: Defines the `STRICT_OCR_PROMPT_TEMPLATE` which instructs the LLM to behave as a literal transcriber and enforce LaTeX rules.
 
-## 🤝 Contributing
+*   **`ocr_worker.py`** (Orchestration)
+    *   **`OCRWorker`**: A threaded class managing the OCR pipeline.
+    *   **Producer-Consumer**:
+        *   *Producer*: Renders PDF pages to PNG images using `pypdfium2`.
+        *   *Consumers*: A pool of worker threads sending concurrent requests to the selected API provider.
+    *   **Robustness**: Implements retry logic with exponential backoff for API failures.
 
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## 📄 License
-
-[MIT License](LICENSE)
+*   **`ocr_providers.py`** (Backend)
+    *   **`OCRProvider`**: Abstract base class defining the interface (`create_thread_client`, `transcribe`).
+    *   **Implementations**:
+        *   `GoogleGeminiProvider`: Uses `google-genai` SDK.
+        *   `OpenAIProvider`: Direct OpenAI integration.
+        *   `OpenRouterProvider`: OpenAI-compatible interface for OpenRouter.
+    *   **Configuration**: Central place for default model constants and API client initialization.
