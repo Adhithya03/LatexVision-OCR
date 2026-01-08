@@ -1,5 +1,7 @@
 # PDF OCR Tool 📄🔮
 
+<img width="1158" height="931" alt="image" src="https://github.com/user-attachments/assets/0bba0d52-7bab-43a5-a864-70ea6c8c827b" />
+
 A specialized OCR application for scientific and technical documents. It strictly enforces LaTeX formatting for math and uses LLMs (Gemini, OpenAI) for high-precision transcription.
 
 ## 🚀 Key Features
